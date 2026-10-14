@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=0.5,maximum-scale=5,user-scalable=yes,viewport-fit=cover">
+<title>Sagor ISP Billing</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;font-family:Arial,sans-serif;background:#eee;color:#333}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#263238}
+.loginbox{width:360px;max-width:92%;background:#fff;padding:28px;border-radius:6px;box-shadow:0 8px 30px #0005}
+.loginbox h1{margin:0 0 5px;color:#333}.muted{color:#777}
+input,select{width:100%;padding:11px;border:1px solid #bbb;border-radius:4px;margin:5px 0 12px;font-size:15px}
+.btn{border:0;border-radius:4px;padding:10px 14px;cursor:pointer}.primary{background:#168acb;color:#fff}.danger{background:#e23b55;color:#fff}.success{background:#13b85a;color:#fff}.warn{background:#f4a914;color:#fff}
+#app{display:none}.top{height:82px;background:#42484c;color:#fff;display:flex;align-items:center;padding:0 20px;gap:12px}.hamb{background:#fff;border:0;border-radius:3px;font-size:24px;width:54px;height:46px;cursor:pointer}.logo{background:#fff;color:#1688a0;width:60px;height:60px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:bold}.title{font-size:24px;font-weight:bold}.subtitle{font-size:16px;color:#ddd}.gear{margin-left:auto;font-size:26px}.usericon{font-size:27px;color:#148be0}
+.search{background:#4b5357;padding:15px 20px}.search input{height:62px;font-size:25px;margin:0;border:2px solid #19a8df}
+.wrap{padding:18px 20px 65px}.page{display:none}.page.active{display:block}.page h1{font-size:40px;font-weight:400;margin:12px 0 25px}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card{min-height:136px;border-radius:7px;color:white;padding:25px 20px;box-shadow:0 2px 5px #0003;display:flex;align-items:center;gap:15px;cursor:pointer}.card .ico{font-size:42px;width:55px;text-align:center}.card .label{font-size:22px}.card .value{font-size:29px;font-weight:bold;margin-top:5px}.red{background:#df3b57}.cyan{background:#2bb1c5}.orange{background:#f6aa16}.green{background:#12b95b}
+.panel{background:#fff;border-radius:6px;padding:18px;margin-bottom:16px;box-shadow:0 1px 4px #0002}.panel h2{margin-top:0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:800px}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}th{background:#f5f5f5}
+.nav{position:fixed;left:-280px;top:82px;bottom:0;width:270px;background:#fff;box-shadow:3px 0 10px #0003;z-index:20;padding:12px;transition:.2s;overflow:auto}.nav.open{left:0}.nav button{display:block;width:100%;padding:14px;border:0;background:#fff;text-align:left;font-size:16px;border-bottom:1px solid #eee;cursor:pointer}.nav button:hover{background:#eef7fb}
+.footer{position:fixed;bottom:0;left:0;right:0;background:#ddd;text-align:center;padding:11px;color:#777}
+.badge{padding:4px 8px;border-radius:12px;background:#eee}.paid{background:#d9f5e3;color:#087c35}.unpaid{background:#ffe0e4;color:#a00019}
+@media(max-width:700px){.top{height:82px;padding:0 10px}.title{font-size:20px}.subtitle{font-size:14px}.logo{width:58px}.wrap{padding:12px 10px 65px}.page h1{font-size:36px}.cards{gap:12px}.card{min-height:138px;padding:18px 12px;gap:7px}.card .ico{font-size:34px;width:40px}.card .label{font-size:18px}.card .value{font-size:25px}.search{padding:12px 10px}.search input{height:58px;font-size:20px}.grid2{grid-template-columns:1fr}}
+@media(max-width:450px){.card{min-height:125px}.card .label{font-size:16px}.card .value{font-size:23px}.card .ico{font-size:29px}}
+
+/* Mobile-friendly customer list: card layout only when Short Mobile is selected. */
+@media(max-width:700px){
+  .shortmobile-view{overflow:visible!important;padding:10px!important}
+  .shortmobile-view table{min-width:0!important;width:100%!important;table-layout:fixed}
+  .shortmobile-view thead{display:none}
+  .shortmobile-view tbody{display:block;width:100%}
+  .shortmobile-view .mobile-customer-card{display:flex;align-items:flex-start;gap:8px;width:100%;margin:0 0 10px;padding:10px;border:1px solid #d9e2e8;border-radius:9px;background:#fff;box-shadow:0 1px 4px #00000012}
+  .shortmobile-view .mobile-customer-card>td{border:0;padding:0}
+  .shortmobile-view .mobile-select{flex:0 0 24px;padding-top:4px!important}
+  .shortmobile-view .mobile-customer-content{display:block;min-width:0;flex:1}
+  .mobile-customer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px;font-size:16px}
+  .mobile-customer-head b{overflow-wrap:anywhere}
+  .mobile-customer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
+  .mobile-customer-grid>div{min-width:0;background:#f6f8fa;border-radius:6px;padding:7px}
+  .mobile-customer-grid small{display:block;color:#687782;font-size:11px;margin-bottom:3px}
+  .mobile-customer-grid strong{display:block;font-size:13px;overflow-wrap:anywhere;font-weight:600}
+  .mobile-customer-grid .mobile-address{grid-column:1/-1}
+  .mobile-customer-actions{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:9px}
+  .mobile-customer-actions .btn{padding:8px 9px;font-size:12px}
+  .shortmobile-view .tablewrap{min-width:0}
+}
+
+</style>
+</head>
+<body>
+<div id="login">
+<div class="loginbox">
+<h1>🌐 Sagor ISP</h1><div class="muted">ISP Billing — Local Offline</div><hr>
+<label>Username</label><input id="login_username" value="admin">
+<label>Password</label><input id="login_password" type="password" value="1234">
+<button class="btn primary" style="width:100%" onclick="doLogin()">LOGIN</button>
+<p id="login_error" style="color:#d00"></p>
+</div></div>
+
+<div id="app">
+<header class="top"><button class="hamb" onclick="toggleNav()">☰</button><div class="logo" id="brandLogo">S</div><div><div class="title" id="brandTitle">Sagor ISP</div><div class="subtitle">ISP Billing</div></div><div class="gear">⚙️</div><div class="usericon">👤</div></header>
+<div class="search"><input id="quickSearch" placeholder="🔎 Customer Search..." oninput="quickSearch()"></div>
+
+<nav id="nav" class="nav">
+<button onclick="go('dashboard')">🏠 Admin Home</button>
+<button onclick="go('customers')">👥 Customers / User</button>
+<button onclick="go('areas')">📍 Area</button>
+<button onclick="go('payments')">💳 Payment</button>
+<button onclick="go('packages')">📦 Packages</button>
+<button onclick="go('staff')">👤 Collector / Reseller</button>
+<button onclick="go('expenses')">💰 Expense</button>
+<button onclick="go('settings')">⚙️ Settings</button>
+<button onclick="logout()">🚪 Logout</button>
+</nav>
+
+<main class="wrap">
+<section id="dashboard" class="page active"><h1>Admin Home</h1><div class="cards">
+<div class="card red" onclick="go('customers');filter('unpaid')"><div class="ico">💵</div><div><div class="label">Total outstanding</div><div class="value" id="dOutstanding">৳0/=</div></div></div>
+<div class="card cyan" onclick="go('customers')"><div class="ico">👥</div><div><div class="label">Total subscribers</div><div class="value" id="dTotal">0</div></div></div>
+<div class="card cyan"><div class="ico">💵</div><div><div class="label">Monthly expected</div><div class="value" id="dExpected">৳0/=</div></div></div>
+<div class="card orange"><div class="ico">💵</div><div><div class="label">Partially remaining</div><div class="value" id="dPartialRemain">৳0/=</div></div></div>
+<div class="card orange" onclick="go('customers');filter('unpaid')"><div class="ico">👤</div><div><div class="label">Unpaid customer</div><div class="value" id="dPartial">0</div></div></div>
+<div class="card green" onclick="go('customers');filter('paid')"><div class="ico">✓</div><div><div class="label">Full paid customer</div><div class="value" id="dPaid">0</div></div></div>
+<div class="card green"><div class="ico">👥</div><div><div class="label">Online customer</div><div class="value">0</div></div></div>
+<div class="card orange"><div class="ico">👥</div><div><div class="label">Pend - Partially remaining</div><div class="value">0</div></div></div>
+<div class="card red"><div class="ico">👥</div><div><div class="label">Overdue customer</div><div class="value" id="dOverdue">0</div></div></div>
+<div class="card green"><div class="ico">👥</div><div><div class="label">Connection on</div><div class="value" id="dOn">0</div></div></div>
+<div class="card red"><div class="ico">⊘</div><div><div class="label">Connection closed</div><div class="value" id="dOff">0</div></div></div>
+<div class="card green"><div class="ico">✓</div><div><div class="label">Connection: Active - Inactive</div><div class="value" id="dActive">0 → 0</div></div></div>
+<div class="card orange"><div class="ico">💵</div><div><div class="label">Current month's dues</div><div class="value" id="dCurrent">৳0/=</div></div></div>
+<div class="card red" onclick="go('customers');filter('prevdue')" style="cursor:pointer"><div class="ico">💵</div><div><div class="label">Previous month unpaid</div><div class="value" id="dPrevious">৳0/=</div><small id="dPreviousCount">0 জন</small></div></div>
+<div class="card green"><div class="ico">💵</div><div><div class="label">Advance</div><div class="value">৳0/=</div></div></div>
+<div class="card red"><div class="ico">🐞</div><div><div class="label">Complaints: 0 - IP: IR - S</div><div class="value">0 - 0 - 0 - 0</div></div></div>
+</div></section>
+
+<section id="customers" class="page"><h1>Customers / User</h1>
+<div class="panel" id="allUserSummary">
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+<div><button class="btn primary" onclick="filter('all')">All User</button> <span id="allUserCount">0</span></div>
+<div><b>Total Bill:</b> <span id="allTotalBill">৳0/=</span></div>
+<div><b>Total Collected:</b> <span id="allCollected">৳0/=</span></div>
+<div><b>Total Remaining:</b> <span id="allRemaining">৳0/=</span></div>
+</div></div><div class="panel"><button class="btn primary" onclick="document.getElementById('addbox').style.display='block'">+ Add Customer</button> <button class="btn" onclick="exportCSV()">Export CSV</button> <button class="btn success" onclick="paySelected()">PAID SELECTED</button> <button class="btn danger" onclick="deleteSelectedCustomers()">DELETE SELECTED</button><span id="selectedCount" style="margin-left:8px;font-weight:600"></span><div id="addbox" style="display:none"><hr><div class="grid2"><div>Name<input id="cn"></div><div>Mobile<input id="cm"></div><div>User / PPPoE Username<input id="cu"></div><div>Password<input id="cp"></div><div>Area<select id="ca"></select></div><div>Package<select id="cpack"></select></div><div style="grid-column:1/-1"><b>Address / ঠিকানা</b><textarea id="caddr" rows="3" placeholder="এখানে Customer-এর সম্পূর্ণ Address লিখুন" style="width:100%;margin-top:6px"></textarea></div></div><button class="btn primary" onclick="addCustomer()">Save</button></div></div>
+<div class="panel" style="margin-top:10px"><button class="btn" onclick="setCustomerView('details')">Details</button> <button class="btn" onclick="setCustomerView('shortpc')">Short PC</button> <button class="btn" onclick="setCustomerView('shortmobile')">Short Mobile</button> <label style="display:inline-block;margin:0 5px">Show Area <select id="areaFilter" onchange="areaFilter=this.value;customerPage=1;render()" style="width:auto;display:inline-block;margin:0;padding:9px"><option value="all">Main Area (All Lines)</option></select></label> <select id="bulkArea" style="width:auto;display:inline-block;margin:0 5px;padding:9px"><option value="">Move selected to Area</option></select> <button class="btn primary" onclick="moveSelectedToArea()">MOVE TO AREA</button></div><div class="panel tablewrap"><table><thead><tr><th><input type="checkbox" id="selectAllCustomers" onchange="toggleAllCustomers(this)"></th><th>Name</th><th>Mobile</th><th>User</th><th>Area</th><th>Package</th><th>Bill</th><th>Status</th><th>Action</th></tr></thead><tbody id="customerRows"></tbody></table><div id="customerPagination" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div></div></section>
+
+<div id="detailsbox" style="display:none;position:fixed;inset:0;background:#0007;z-index:9998;align-items:center;justify-content:center">
+<div class="panel" style="width:94%;max-width:620px;max-height:90vh;overflow:auto">
+<h2>Customer Details</h2><div id="detailsContent"></div>
+<div style="margin-top:12px"><button class="btn" onclick="closeDetails()">Close</button></div>
+</div></div>
+
+<div id="editbox" style="display:none;position:fixed;inset:0;background:#0007;z-index:9999;align-items:center;justify-content:center">
+<div class="panel" style="width:94%;max-width:620px;max-height:90vh;overflow:auto">
+<h2>Edit Customer</h2>
+<div class="grid2">
+<div>Name<input id="en_name"></div>
+<div>Mobile<input id="en_mobile"></div>
+<div>User / PPPoE Username<input id="en_username"></div>
+<div>Password<input id="en_password"></div>
+<div>Area<select id="en_area"></select></div>
+<div>Package<select id="en_package"></select></div>
+<div style="grid-column:1/-1"><b>Address / ঠিকানা</b><textarea id="en_address" rows="3" placeholder="এখানে Customer-এর সম্পূর্ণ Address লিখুন" style="width:100%;margin-top:6px"></textarea></div>
+<div>আগের বকেয়া (Opening Due)<input id="en_opening_due" type="number" min="0" step="1" placeholder="0"></div>
+</div>
+<div style="margin-top:12px"><button class="btn primary" onclick="saveEditedCustomer()">Save / Update</button> <button class="btn" onclick="closeEditCustomer()">Cancel</button></div>
+</div></div>
+
+<section id="areas" class="page"><h1>Area</h1><div class="panel"><input id="areaInput" placeholder="Area name"><button class="btn primary" onclick="addArea()">Add Area</button></div><div class="panel" id="areasList"></div><div class="panel" id="areaCustomersList" style="display:none"></div></section>
+<section id="payments" class="page"><h1>Payment</h1><div class="panel"><h2 style="margin-bottom:8px">আজকের পেমেন্ট</h2><div id="todayPaymentSummary" style="font-size:18px;font-weight:600">আজকে PAID: 0 জন — মোট: ৳0/=</div><div id="todayPaymentList" class="muted" style="margin-top:8px"></div></div><div class="panel tablewrap"><table><thead><tr><th>Customer</th><th>Bill</th><th>Status</th><th>Payment Date</th><th>Collected By</th><th>Action</th></tr></thead><tbody id="paymentRows"></tbody></table></div></section>
+<section id="packages" class="page"><h1>Packages</h1><div class="panel"><div class="grid2"><input id="pn" placeholder="Package e.g. 8 Mbps"><input id="pp" type="number" placeholder="Amount"></div><button class="btn primary" onclick="addPackage()">Add Package</button></div><div class="panel" id="packageList"></div></section>
+<section id="staff" class="page"><h1>Collector / Reseller</h1><div class="panel"><div class="grid2"><input id="sn" placeholder="Name"><select id="sr"><option>Collector</option><option>Reseller</option><option>Admin</option></select><input id="su" placeholder="Username"><input id="sp" placeholder="Password"></div><button class="btn primary" onclick="addStaff()">Create Login</button></div><div class="panel" id="staffList"></div></section>
+<section id="expenses" class="page"><h1>Expense</h1><div class="panel"><div class="grid2"><input id="en" placeholder="Expense title"><input id="ea" type="number" placeholder="Amount"></div><button class="btn primary" onclick="addExpense()">Add Expense</button></div><div class="panel" id="expenseList"></div></section>
+<section id="settings" class="page"><h1>Settings</h1>
+<div class="panel" id="adminSettingsPanel">
+<h2>🔐 My Admin Login & Logo</h2>
+<p class="muted">Admin নিজের login username/password, ISP name এবং logo পরিবর্তন করতে পারবেন।</p>
+<label>ISP / Software Name</label><input id="systemNameInput" placeholder="Sagor ISP">
+<label>Admin Username</label><input id="adminUsernameInput" placeholder="Admin username">
+<label>Current Password</label><input id="adminCurrentPassword" type="password" placeholder="Current password">
+<label>New Password</label><input id="adminNewPassword" type="password" placeholder="New password">
+<label>Logo</label><input id="adminLogoFile" type="file" accept="image/*">
+<button class="btn primary" onclick="saveAdminSettings()">Save Admin Settings</button>
+<button class="btn danger" onclick="removeAdminLogo()">Remove Logo</button>
+<span id="adminSettingsMsg"></span>
+</div><div class="panel"><h2>Package Management</h2><p>Default: 8 Mbps ৳400, 10 Mbps ৳500, 12 Mbps ৳600</p><button class="btn primary" onclick="go('packages')">Manage Packages</button></div><div class="panel"><h2>♻️ Deleted / Disconnected Customers</h2>
+<p>Customer delete করলে permanently delete হবে না। Archive-এ যাবে। পরে Restore/Reconnect করলে আবার Total Subscribers ও Customer list-এ ফিরে আসবে।</p>
+<div id="archiveList"></div></div>
+<div class="panel"><h2>📄 PDF Import</h2>
+<p>PDF থেকে <b>নাম + প্যাকেজ + বিল</b> পড়বে। Import Area নির্বাচন করলে Area automatic যুক্ত হবে।</p>
+<label>Import Area</label><select id="pdfArea"></select>
+<input type="file" id="pdffile" accept=".pdf,application/pdf">
+<button class="btn primary" onclick="importPDF()">Import PDF</button>
+<span id="pdfmsg"></span></div>
+<div class="panel"><h2>Import Customer</h2><p>PDF/CSV import করার সময় Area একবার নির্বাচন করলে ওই Area-টি imported customer-দের সাথে automatic add হবে। চাইলে CSV-তে আলাদা <b>area</b> column থাকলে সেটি অগ্রাধিকার পাবে।</p><label>Import Area</label><select id="importArea"></select><p class="muted">CSV header: name,mobile,username,password,area,package,bill</p><input type="file" id="csvfile" accept=".csv"><button class="btn primary" onclick="importCSV()">Import CSV</button><span id="importmsg"></span></div>
+<div class="panel"><h2>☁️ Cloud Database Sync</h2><p class="muted">Internet থাকলে একাধিক Phone / PC / Device-এ একই database automatic sync হবে। Internet না থাকলে এই device-এ কাজ চলবে; connection ফিরে এলে আবার sync হবে।</p>
+<label>Firebase Realtime Database URL</label><input id="syncDbUrl" placeholder="https://your-project-default-rtdb.firebaseio.com">
+<label>Shared Sync Code</label><input id="syncCode" placeholder="যেমন: SAGOR-2026-001">
+<div style="margin:6px 0 12px"><label style="display:flex;align-items:center;gap:8px"><input id="syncAuto" type="checkbox" style="width:auto;margin:0" onchange="setSyncAuto(this.checked)"> Auto Sync ON</label></div>
+<button class="btn primary" onclick="saveSyncSettings()">Save Sync Settings</button> <button class="btn success" onclick="syncNow()">SYNC NOW</button>
+<div id="syncStatus" class="muted" style="margin-top:10px">Sync is OFF</div><div id="syncLast" class="muted"></div>
+<hr><h3>Google Drive Backup / Restore</h3>
+<p class="muted">Backup file Google Drive-এ upload করে রাখুন। অন্য মোবাইলে Google Drive থেকে file download করে Restore করুন। এটি manual backup; automatic multi-device sync-এর জন্য উপরের Cloud Sync আলাদাভাবে চালু থাকতে হবে।</p>
+<button class="btn primary" onclick="downloadFullBackup()">Download Full Backup</button>
+<label style="margin-top:12px">Google Drive থেকে backup file বাছাই করুন</label><input id="restoreBackupFile" type="file" accept=".json,application/json">
+<button class="btn success" onclick="restoreFullBackup()">Restore Backup</button><div id="backupStatus" class="muted" style="margin-top:8px"></div>
+</div><div class="panel"><h2>MikroTik API</h2><p class="muted">API is optional. OFF = billing only. Real RouterOS control requires a local connector; this browser-only file will not fake a connection.</p></div></section>
+</main><div class="footer">© Copyright Sagor ISP. All Rights Reserved</div>
+</div>
+
+<script>
+let customers=JSON.parse(localStorage.getItem('sagor_customers')||'[]');
+let archive=JSON.parse(localStorage.getItem('sagor_archive')||'[]');
+// Final Update: clear the old customer data once so the owner can import a fresh list.
+if(!localStorage.getItem('sagor_final_update_clean_v2')){customers=[];archive=[];localStorage.setItem('sagor_customers','[]');localStorage.setItem('sagor_archive','[]');localStorage.setItem('sagor_final_update_clean_v2','1');}
+let areas=JSON.parse(localStorage.getItem('sagor_areas')||'["Main Area"]');
+let packages=JSON.parse(localStorage.getItem('sagor_packages')||'[{"name":"8 Mbps","price":400},{"name":"10 Mbps","price":500},{"name":"12 Mbps","price":600}]');
+let staff=JSON.parse(localStorage.getItem('sagor_staff')||'[{"name":"Admin","role":"Admin","username":"admin","password":"1234"}]');
+let expenses=JSON.parse(localStorage.getItem('sagor_expenses')||'[]');let systemName=localStorage.getItem('sagor_system_name')||'Sagor ISP';let logoData=localStorage.getItem('sagor_logo_data')||'';let current=null,filterMode='all',editIndex=-1,customerPage=1,customerPageSize=20,areaFilter='all';
+const $=id=>document.getElementById(id);
+let syncTimer=null,syncBusy=false,syncDirty=false,deviceId=localStorage.getItem('sagor_device_id')||('DEV-'+Math.random().toString(36).slice(2,10));
+localStorage.setItem('sagor_device_id',deviceId);
+function buildDatabase(){return {version:1,updatedAt:Date.now(),deviceId,customers,archive,areas,packages,staff,expenses,systemName,logoData}}
+function downloadFullBackup(){
+  try{const data=JSON.stringify(buildDatabase(),null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='SAGOR_NETWORK_Backup_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);$('backupStatus').textContent='Backup file তৈরি হয়েছে। এখন Downloads থেকে Google Drive-এ upload করুন।';}
+  catch(e){$('backupStatus').textContent='Backup তৈরি হয়নি: '+e.message;}
+}
+function restoreFullBackup(){
+  const f=$('restoreBackupFile').files[0];if(!f){alert('আগে Google Drive/Downloads থেকে backup JSON file বাছাই করুন।');return;}
+  if(!confirm('বর্তমান এই মোবাইলের data backup file দিয়ে replace হবে। আগে backup নিয়েছেন তো? Continue করবেন?'))return;
+  const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!Array.isArray(d.customers))throw new Error('এটি SAGOR NETWORK-এর সঠিক backup file নয়।');applyDatabase(d);save();if($('backupStatus'))$('backupStatus').textContent='Backup restore হয়েছে।';alert('Backup restore সফল হয়েছে।');}catch(e){$('backupStatus').textContent='Restore হয়নি: '+e.message;}};r.onerror=()=>{$('backupStatus').textContent='ফাইল পড়া যায়নি। আবার চেষ্টা করুন।'};r.readAsText(f);
+}
+function save(){localStorage.setItem('sagor_customers',JSON.stringify(customers));localStorage.setItem('sagor_archive',JSON.stringify(archive));localStorage.setItem('sagor_areas',JSON.stringify(areas));localStorage.setItem('sagor_packages',JSON.stringify(packages));localStorage.setItem('sagor_staff',JSON.stringify(staff));localStorage.setItem('sagor_expenses',JSON.stringify(expenses));syncDirty=true;queueAutoSync()}
+const DEFAULT_SYNC_URL='https://sagor-online-default-rtdb.firebaseio.com';const DEFAULT_SYNC_CODE='SAGOR-NETWORK-2026';
+if(!localStorage.getItem('sagor_sync_db_url'))localStorage.setItem('sagor_sync_db_url',DEFAULT_SYNC_URL);
+if(!localStorage.getItem('sagor_sync_code'))localStorage.setItem('sagor_sync_code',DEFAULT_SYNC_CODE);
+if(!localStorage.getItem('sagor_sync_auto'))localStorage.setItem('sagor_sync_auto','1');
+function getSyncConfig(){return {url:(localStorage.getItem('sagor_sync_db_url')||DEFAULT_SYNC_URL).trim().replace(/\/$/,''),code:(localStorage.getItem('sagor_sync_code')||DEFAULT_SYNC_CODE).trim(),auto:localStorage.getItem('sagor_sync_auto')!=='0'}}
+function setSyncStatus(t,ok){const e=$('syncStatus');if(e){e.textContent=t;e.style.color=ok?'#087c35':''}}
+function renderSyncSettings(){const c=getSyncConfig();if($('syncDbUrl'))$('syncDbUrl').value=c.url;if($('syncCode'))$('syncCode').value=c.code;if($('syncAuto'))$('syncAuto').checked=c.auto;const last=localStorage.getItem('sagor_sync_last')||'';if($('syncLast'))$('syncLast').textContent=last?'Last Sync: '+new Date(last).toLocaleString():'';setSyncStatus(c.url&&c.code?(c.auto?'☁️ Auto Sync ON':'☁️ Sync Ready'):'Sync is OFF',!!(c.url&&c.code))}
+function saveSyncSettings(){const url=$('syncDbUrl').value.trim().replace(/\/$/,'');const code=$('syncCode').value.trim();if(url&&!/^https?:\/\//i.test(url))return alert('Firebase Database URL সঠিকভাবে দিন।');localStorage.setItem('sagor_sync_db_url',url);localStorage.setItem('sagor_sync_code',code);localStorage.setItem('sagor_sync_auto',$('syncAuto').checked?'1':'0');renderSyncSettings();if(url&&code)syncNow()}
+function setSyncAuto(v){localStorage.setItem('sagor_sync_auto',v?'1':'0');if(v)queueAutoSync();renderSyncSettings()}
+function queueAutoSync(){clearTimeout(syncTimer);const c=getSyncConfig();if(!c.url||!c.code||!c.auto)return;syncTimer=setTimeout(()=>syncNow(),1200)}
+function syncEndpoint(){const c=getSyncConfig();if(!c.url||!c.code)return '';return c.url+'/sagor_network/'+encodeURIComponent(c.code)+'.json'}
+function applyDatabase(d){if(!d||!Array.isArray(d.customers))throw new Error('Invalid cloud database');customers=d.customers||[];archive=d.archive||[];areas=d.areas||['Main Area'];packages=d.packages||[];staff=d.staff||[];expenses=d.expenses||[];systemName=d.systemName||'Sagor ISP';logoData=d.logoData||'';localStorage.setItem('sagor_customers',JSON.stringify(customers));localStorage.setItem('sagor_archive',JSON.stringify(archive));localStorage.setItem('sagor_areas',JSON.stringify(areas));localStorage.setItem('sagor_packages',JSON.stringify(packages));localStorage.setItem('sagor_staff',JSON.stringify(staff));localStorage.setItem('sagor_expenses',JSON.stringify(expenses));localStorage.setItem('sagor_system_name',systemName);if(logoData)localStorage.setItem('sagor_logo_data',logoData);else localStorage.removeItem('sagor_logo_data');syncDirty=false;syncBrand();render()}
+async function bootstrapCloudSync(){const ep=syncEndpoint();if(!ep)return false;try{const r=await fetch(ep,{cache:'no-store'});if(!r.ok)throw new Error('Cloud read failed: '+r.status);const remote=await r.json();if(remote&&Array.isArray(remote.customers)){applyDatabase(remote);syncDirty=false;localStorage.setItem('sagor_sync_last',Date.now());localStorage.setItem('sagor_cloud_ready','1');return true}return false}catch(e){console.warn('Cloud bootstrap failed',e);localStorage.removeItem('sagor_cloud_ready');return false}}
+async function prepareCloudLogin(){const c=getSyncConfig();if(!c.url||!c.code)return false;setSyncStatus('☁️ Checking cloud data...',false);const ok=await bootstrapCloudSync();if(ok){const a=staff.find(x=>String(x.role).toLowerCase()==='admin');if(a){$('login_username').value=a.username;setSyncStatus('✓ Cloud data ready — use your Admin password',true)}else setSyncStatus('⚠️ Cloud data has no Admin account',false)}else setSyncStatus('⚠️ Cloud not reachable — local login available',false);return ok}
+async function syncNow(){if(syncBusy)return;const ep=syncEndpoint();if(!ep){renderSyncSettings();return}syncBusy=true;setSyncStatus('☁️ Syncing...',false);try{const r=await fetch(ep,{cache:'no-store'});if(!r.ok)throw new Error('Cloud read failed: '+r.status);const remote=await r.json();const local=buildDatabase();if(remote&&remote.updatedAt&&!syncDirty&&Number(remote.updatedAt)>Number(local.updatedAt||0)){applyDatabase(remote);localStorage.setItem('sagor_sync_last',Date.now());setSyncStatus('✓ Data synced from cloud',true)}else if(!remote||syncDirty||Number(local.updatedAt||0)>=Number(remote.updatedAt||0)){const payload=buildDatabase();const w=await fetch(ep,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!w.ok)throw new Error('Cloud write failed: '+w.status);syncDirty=false;localStorage.setItem('sagor_sync_last',Date.now());setSyncStatus('✓ Data synced successfully',true)}else{localStorage.setItem('sagor_sync_last',Date.now());setSyncStatus('✓ Sync complete',true)}renderSyncSettings()}catch(e){console.error(e);setSyncStatus('⚠️ Sync failed — local data is safe',false)}finally{syncBusy=false;const c=getSyncConfig();if(c.auto){clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),7000)}}}
+async function doLogin(){$('login_error').textContent='';const c=getSyncConfig();if(c.url&&c.code)await bootstrapCloudSync();let u=$('login_username').value.trim(),p=$('login_password').value,x=staff.find(a=>a.username===u&&a.password===p);if(!x&&c.url&&c.code){await bootstrapCloudSync();x=staff.find(a=>a.username===u&&a.password===p)}if(!x){$('login_error').textContent='Wrong username or password';return}current=x;$('login').style.display='none';$('app').style.display='block';render();renderAdminSettings();renderSyncSettings();if(c.url&&c.code)syncNow();}
+function logout(){$('app').style.display='none';$('login').style.display='flex';current=null}
+function toggleNav(){$('nav').classList.toggle('open')}
+function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');$('nav').classList.remove('open');render()}
+function isAdminUser(){return current&&String(current.role).toLowerCase()==='admin'}
+function syncBrand(){
+  $('brandTitle').textContent=systemName||'Sagor ISP';
+  $('brandLogo').innerHTML=logoData?'<img src="'+logoData+'" style="width:100%;height:100%;object-fit:contain;border-radius:4px">':'S';
+  $('systemNameInput').value=systemName||'Sagor ISP';
+  const a=staff.find(x=>String(x.role).toLowerCase()==='admin');
+  $('adminUsernameInput').value=a?a.username:'admin';
+}
+function renderAdminSettings(){
+  const p=$('adminSettingsPanel'); if(!p)return;
+  p.style.display=isAdminUser()?'block':'none';
+  if(isAdminUser())syncBrand();
+  $('login_username').value=(staff.find(x=>String(x.role).toLowerCase()==='admin')||staff[0]||{}).username||'admin';
+}
+function saveAdminSettings(){
+  if(!isAdminUser())return alert('Admin only');
+  const admin=staff.find(x=>String(x.role).toLowerCase()==='admin');
+  if(!admin)return alert('Admin account not found');
+  const oldPass=$('adminCurrentPassword').value,newPass=$('adminNewPassword').value,newUser=$('adminUsernameInput').value.trim(),newName=$('systemNameInput').value.trim()||'Sagor ISP';
+  if(!newUser)return alert('Admin username দিন');
+  if(oldPass!==admin.password)return alert('Current password ভুল');
+  if(newPass)admin.password=newPass;
+  admin.username=newUser;
+  systemName=newName; localStorage.setItem('sagor_system_name',systemName);
+  const file=$('adminLogoFile').files[0];
+  const finish=()=>{save();syncBrand();$('adminCurrentPassword').value='';$('adminNewPassword').value='';$('adminSettingsMsg').textContent=' Saved';setTimeout(()=>{$('adminSettingsMsg').textContent=''},1800)};
+  if(file){
+    const r=new FileReader();r.onload=()=>{logoData=r.result;localStorage.setItem('sagor_logo_data',logoData);finish()};r.readAsDataURL(file);
+  }else finish();
+}
+function removeAdminLogo(){
+  if(!isAdminUser())return alert('Admin only');
+  logoData='';localStorage.removeItem('sagor_logo_data');syncBrand();$('adminLogoFile').value='';$('adminSettingsMsg').textContent=' Logo removed';
+}
+function addArea(){let x=$('areaInput').value.trim();if(x&&!areas.includes(x)){areas.push(x);save();$('areaInput').value='';render()}}
+function delArea(i){areas.splice(i,1);save();render()}
+function showAreaCustomers(i){
+  let area=areas[i];
+  let list=customers.filter(x=>(x.area||'')===area);
+  let box=$('areaCustomersList');
+  box.style.display='block';
+  box.innerHTML='<h3 style="margin:0 0 10px">'+escapeHtml(area)+' — '+list.length+' জন Line/User</h3>'+
+    (list.length?'<div class="tablewrap"><table><thead><tr><th>SL</th><th>Name</th><th>Mobile</th><th>User</th><th>Package</th><th>Due</th><th>Status</th><th>Action</th></tr></thead><tbody>'+
+    list.map((x,n)=>{let idx=customers.indexOf(x);return '<tr><td>'+(n+1)+'</td><td>'+escapeHtml(x.name||'')+'</td><td>'+escapeHtml(x.mobile||'')+'</td><td>'+escapeHtml(x.username||'')+'</td><td>'+escapeHtml(x.package||'')+'</td><td>৳'+(x.paid?0:customerDueAmount(x))+'</td><td><span class="badge '+(x.paid?'paid':'unpaid')+'">'+(x.paid?'✓ PAID':'UNPAID')+'</span></td><td><button class="btn" onclick="showDetails('+idx+')">Details</button> <button class="btn" onclick="editCustomer('+idx+')">Edit</button></td></tr>'}).join('')+
+    '</tbody></table></div>':'<div class="muted">এই Area-তে কোনো Line/User নেই।</div>')+
+    "<div style=\"margin-top:10px\"><button class=\"btn\" onclick=\"document.getElementById(\'areaCustomersList\').style.display=\'none\'\">Close</button></div>";
+}
+
+function addPackage(){let n=$('pn').value.trim(),p=+$('pp').value;if(n&&p){packages.push({name:n,price:p});save();$('pn').value='';$('pp').value='';render()}}
+function delPackage(i){packages.splice(i,1);save();render()}
+function addCustomer(){let x={id:Date.now(),name:$('cn').value,mobile:$('cm').value,username:$('cu').value,password:$('cp').value,area:$('ca').value,address:$('caddr').value.trim(),package:packages[+$('cpack').value].name,bill:packages[+$('cpack').value].price,openingDue:0,paid:false,paymentDate:'',collector:'-',active:true,monthlyBills:[{month:monthKey(),amount:packages[+$('cpack').value].price,paid:false,paymentDate:'',collector:'-'}]};if(!x.name||!x.username)return alert('Name and User are required');if(customers.some(c=>String(c.username||'').trim().toLowerCase()===String(x.username).trim().toLowerCase()))return alert('এই User আগে থেকেই আছে — Duplicate User যোগ হবে না।');customers.push(x);save();render()}
+function monthKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function monthLabel(k){let [y,m]=k.split('-').map(Number);return new Date(y,m-1,1).toLocaleString('en',{month:'long',year:'numeric'})}
+function ensureMonthlyBills(){const now=monthKey();customers.forEach(x=>{if(!Array.isArray(x.monthlyBills)){let prior=x.paymentDate?monthKey(new Date(x.paymentDate)):(()=>{let d=new Date();d.setMonth(d.getMonth()-1);return monthKey(d)})();x.monthlyBills=[];if(x.bill||x.openingDue)x.monthlyBills.push({month:prior,amount:+x.bill||0,paid:!!x.paid,paymentDate:x.paid?(x.paymentDate||''): '',collector:x.collector||'-'});x.monthlyMigrated=true;}if(x.active!==false&&!x.monthlyBills.some(b=>b.month===now))x.monthlyBills.push({month:now,amount:+x.bill||0,paid:false,paymentDate:'',collector:'-'});let cur=x.monthlyBills.find(b=>b.month===now);x.paid=!!(cur&&cur.paid);x.paymentDate=cur&&cur.paid?cur.paymentDate||'':'';x.collector=cur&&cur.paid?cur.collector||'-':'-';});}
+function customerDueAmount(x){ensureMonthlyBills();return (+x.openingDue||0)+(x.monthlyBills||[]).filter(b=>!b.paid).reduce((s,b)=>s+(+b.amount||0),0)}
+function pay(i){let x=customers[i];if(!x)return;ensureMonthlyBills();let unpaid=(x.monthlyBills||[]).filter(b=>!b.paid);if(!unpaid.length)return alert('কোনো বকেয়া মাস নেই');let choices=unpaid.map(b=>b.month+' ('+monthLabel(b.month)+': ৳'+b.amount+')').join('\n');let selected=prompt('যে মাসের বিল Paid করবেন, মাসের কোড লিখুন (একাধিক হলে কমা দিন):\n'+choices,unpaid.find(b=>b.month===monthKey())?.month||unpaid[unpaid.length-1].month);if(selected===null)return;let keys=selected.split(',').map(v=>v.trim());let valid=unpaid.filter(b=>keys.includes(b.month));if(!valid.length)return alert('সঠিক মাসের কোড দিন');let stamp=new Date().toISOString(),collector=current.name+' ('+current.role+')';valid.forEach(b=>{b.paid=true;b.paymentDate=stamp;b.collector=collector});save();render()}
+function unpay(i){let x=customers[i];if(!x)return;ensureMonthlyBills();let b=(x.monthlyBills||[]).find(b=>b.month===monthKey());if(!b||!b.paid)return alert('এই মাসের বিল Paid নেই');b.paid=false;b.paymentDate='';b.collector='-';save();render()}
+function editCustomer(i){
+  editIndex=i; let x=customers[i];
+  $('en_name').value=x.name||''; $('en_mobile').value=x.mobile||''; $('en_username').value=x.username||''; $('en_password').value=x.password||'';
+  $('en_area').innerHTML=areas.map(a=>'<option>'+a+'</option>').join(''); $('en_area').value=x.area||areas[0]||''; $('en_address').value=x.address||'';
+  $('en_package').innerHTML=packages.map((p,j)=>'<option value="'+j+'">'+p.name+' - ৳'+p.price+'</option>').join('');
+  let pi=packages.findIndex(p=>p.name===x.package); if(pi>=0)$('en_package').value=String(pi);
+  $('en_opening_due').value=Number(x.openingDue||0);
+  $('editbox').style.display='flex';
+}
+function closeEditCustomer(){editIndex=-1;$('editbox').style.display='none'}
+function saveEditedCustomer(){
+  if(editIndex<0)return;
+  let x=customers[editIndex], p=packages[+$('en_package').value];
+  let name=$('en_name').value.trim(), username=$('en_username').value.trim();
+  if(!name||!username)return alert('Name and User are required');
+  x.name=name; x.mobile=$('en_mobile').value.trim(); x.username=username; x.password=$('en_password').value;
+  x.area=$('en_area').value; x.address=$('en_address').value.trim(); if(p){x.package=p.name;x.bill=p.price}
+  x.openingDue=Math.max(0,+$('en_opening_due').value||0);
+  save(); closeEditCustomer(); render();
+}
+function updateSelectedCount(){let n=document.querySelectorAll('.customerSelect:checked').length;let el=$('selectedCount');if(el)el.textContent=n?'Selected: '+n:''}
+function moveSelectedToArea(){let boxes=[...document.querySelectorAll('.customerSelect:checked')];let area=$('bulkArea').value;if(!boxes.length)return alert('Select customer first');if(!area)return alert('Select Area first');let count=0;boxes.forEach(b=>{let i=+b.dataset.index;if(customers[i]){customers[i].area=area;count++}});save();render();alert(count+' customer(s) moved to '+area)}
+function toggleAllCustomers(cb){document.querySelectorAll('.customerSelect').forEach(x=>x.checked=cb.checked);updateSelectedCount()}
+function paySelected(){let boxes=[...document.querySelectorAll('.customerSelect:checked')];if(!boxes.length)return alert('Select customer first');let indexes=[...new Set(boxes.map(b=>+b.dataset.index))];let unpaid=customers.flatMap(x=>(x.monthlyBills||[]).filter(b=>!b.paid).map(b=>b.month));let months=[...new Set(unpaid)].sort();if(!months.length)return alert('কোনো বকেয়া মাস নেই');let choice=prompt('যে মাস/মাসগুলোর বিল Paid করবেন, মাসের কোড লিখুন (একাধিক হলে কমা দিন):\n'+months.map(k=>k+' ('+monthLabel(k)+')').join('\n'),monthKey());if(choice===null)return;let keys=choice.split(',').map(v=>v.trim());let stamp=new Date().toISOString(),collector=current.name+' ('+current.role+')',count=0;indexes.forEach(i=>{let x=customers[i];if(!x)return;(x.monthlyBills||[]).forEach(b=>{if(!b.paid&&keys.includes(b.month)){b.paid=true;b.paymentDate=stamp;b.collector=collector;count++}})});if(!count)return alert('নির্বাচিত মাসে কোনো বকেয়া বিল পাওয়া যায়নি');save();render();alert(count+' মাসের বিল PAID হয়েছে')}
+function deleteSelectedCustomers(){let boxes=[...document.querySelectorAll('.customerSelect:checked')];if(!boxes.length)return alert('Select customer first');let idx=[...new Set(boxes.map(b=>+b.dataset.index))].sort((a,b)=>b-a);if(!confirm(idx.length+' customer(s) permanently delete করবেন?'))return;idx.forEach(i=>{if(customers[i])customers.splice(i,1)});save();render();alert(idx.length+' customer(s) deleted')}
+function archiveCustomer(i){if(confirm('এই customer-কে Delete না করে Archive/Disconnected-এ রাখবেন?')){let x=customers.splice(i,1)[0];x.archivedAt=new Date().toISOString();archive.push(x);save();render()}}
+function restoreCustomer(i){let x=archive.splice(i,1)[0];delete x.archivedAt;x.paid=false;x.paymentDate='';x.collector='-';customers.push(x);save();render()}
+function permanentDeleteArchive(i){if(confirm('স্থায়ীভাবে delete করবেন? পরে আর reconnect করা যাবে না।')){archive.splice(i,1);save();render()}}
+function filter(m){filterMode=m;customerPage=1;render()}
+function quickSearch(){render()}
+function addStaff(){if(current.role!=='Admin')return alert('Admin only');let x={name:$('sn').value,role:$('sr').value,username:$('su').value,password:$('sp').value};if(!x.name||!x.username||!x.password)return alert('Fill all fields');staff.push(x);save();render()}
+function delStaff(i){if(staff[i].username!=='admin'){staff.splice(i,1);save();render()}}
+function addExpense(){let x={name:$('en').value,amount:+$('ea').value,by:current.name,date:new Date().toLocaleString()};if(x.name&&x.amount){expenses.push(x);save();render()}}
+function importCSV(){let f=$('csvfile').files[0];if(!f)return alert('Select CSV');let r=new FileReader();r.onload=()=>{let lines=r.result.split(/\r?\n/).filter(Boolean),h=lines.shift().split(',').map(x=>x.replaceAll('"','').trim().toLowerCase());let ix=k=>h.indexOf(k),n=0;lines.forEach(line=>{let c=line.split(',').map(x=>x.replace(/^"|"$/g,'').trim());if(c[ix('name')]&&c[ix('username')]){let username=String(c[ix('username')]).trim();if(!customers.some(u=>String(u.username||'').trim().toLowerCase()===username.toLowerCase())){customers.push({id:Date.now()+n,name:c[ix('name')],mobile:c[ix('mobile')]||'',username,password:c[ix('password')]||'',area:(c[ix('area')]||$('importArea').value||areas[0]),package:c[ix('package')]||'',address:c[ix('address')]||'',bill:+(c[ix('bill')]||0),paid:false,paymentDate:'',collector:'-',openingDue:0,active:true,monthlyBills:[{month:monthKey(),amount:+(c[ix('bill')]||0),paid:false,paymentDate:'',collector:'-'}]});n++}}});save();$('importmsg').textContent=' '+n+' imported';render()};r.readAsText(f)}
+
+async function inflateBytes(bytes){
+  if(!('DecompressionStream' in window)) throw new Error('এই Chrome-এ PDF decompression support নেই');
+  const ds=new DecompressionStream('deflate');
+  const stream=new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+function binString(bytes){let s='';const ch=0x8000;for(let i=0;i<bytes.length;i+=ch)s+=String.fromCharCode(...bytes.subarray(i,i+ch));return s}
+function objMapFromPDF(bin){
+  const map=new Map(), re=/(?:^|\n)(\d+)\s+(\d+)\s+obj\b/g; const hits=[]; let m;
+  while((m=re.exec(bin)))hits.push({n:+m[1],start:m.index+(bin[m.index]==='\n'?1:0)});
+  for(let i=0;i<hits.length;i++){const a=hits[i], end=i+1<hits.length?hits[i+1].start:bin.length; map.set(a.n,bin.slice(a.start,end));}
+  return map;
+}
+function streamBytesFromObj(obj){
+  const sm=/\bstream\r?\n/.exec(obj); if(!sm)return null;
+  const e=obj.lastIndexOf('\nendstream'); if(e<0)return null;
+  const raw=obj.slice(sm.index+sm[0].length,e);
+  const b=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)b[i]=raw.charCodeAt(i)&255;
+  return b;
+}
+function parseCMap(txt){
+  const mp={};
+  for(const block of txt.matchAll(/beginbfchar([\s\S]*?)endbfchar/g)){
+    for(const m of block[1].matchAll(/<([0-9a-f]+)>\s*<([0-9a-f]+)>/gi))mp[parseInt(m[1],16)]=String.fromCodePoint(parseInt(m[2],16));
+  }
+  for(const block of txt.matchAll(/beginbfrange([\s\S]*?)endbfrange/g)){
+    for(const m of block[1].matchAll(/<([0-9a-f]+)>\s*<([0-9a-f]+)>\s*<([0-9a-f]+)>/gi)){
+      let a=parseInt(m[1],16),b=parseInt(m[2],16),u=parseInt(m[3],16);
+      for(let c=a;c<=b;c++)mp[c]=String.fromCodePoint(u+c-a);
+    }
+  }
+  return mp;
+}
+function parsePDFStringTokens(block){
+  const out=[];let i=0;
+  while(i<block.length){
+    if(block[i]==='('){
+      let j=i+1,d=1,esc=false;
+      for(;j<block.length;j++){
+        const c=block[j];
+        if(esc){esc=false;continue}
+        if(c==='\\'){esc=true;continue}
+        if(c==='('){d++;continue}
+        if(c===')'){d--;if(!d)break}
+      }
+      if(!d){out.push(block.slice(i+1,j));i=j+1;continue}
+    }
+    if(block[i]==='<'){
+      const j=block.indexOf('>',i+1);
+      if(j>i){const h=block.slice(i+1,j).replace(/\s/g,'');if(/^[0-9a-f]+$/i.test(h)&&h.length%2===0){let s='';for(let k=0;k<h.length;k+=2)s+=String.fromCharCode(parseInt(h.slice(k,k+2),16));out.push(s);i=j+1;continue}}
+    }
+    i++;
+  }
+  return out;
+}
+function pdfLiteralBytes(raw){
+  const out=[]; for(let i=0;i<raw.length;i++){
+    let c=raw.charCodeAt(i)&255;
+    if(c!==92){out.push(c);continue}
+    if(i+1>=raw.length)break;
+    let n=raw[++i];
+    if(n==='n')out.push(10);else if(n==='r')out.push(13);else if(n==='t')out.push(9);else if(n==='b')out.push(8);else if(n==='f')out.push(12);
+    else if(n==='('||n===')'||n==='\\')out.push(n.charCodeAt(0));
+    else if(/[0-7]/.test(n)){let oct=n;for(let j=0;j<2&&i+1<raw.length&&/[0-7]/.test(raw[i+1]);j++)oct+=raw[++i];out.push(parseInt(oct,8)&255);}
+    else if(n==='\r'){if(i+1<raw.length&&raw[i+1]==='\n')i++;}
+    else if(n==='\n'){}
+    else out.push(n.charCodeAt(0)&255);
+  } return new Uint8Array(out);
+}
+function decodePDFText(raw,map,fontKey){
+  const b=pdfLiteralBytes(raw); let out='';
+  for(let i=0;i+1<b.length;i+=2){
+    const cid=(b[i]<<8)|b[i+1];
+    let ch=map[cid];
+    if(!ch && b[i]===0)ch=String.fromCharCode(b[i+1]);
+    if(ch)out+=ch;
+  }
+  if(b.length%2){const v=b[b.length-1];if(v>=32)out+=String.fromCharCode(v);}
+  return out;
+}
+async function extractPDFRows(file){
+  const bin=binString(new Uint8Array(await file.arrayBuffer()));
+  const objs=objMapFromPDF(bin), maps={}, fonts={};
+  for(const [n,obj] of objs){
+    const tu=obj.match(/\/ToUnicode\s+(\d+)\s+0\s+R/);
+    if(tu){
+      const so=objs.get(+tu[1]); if(so){let sb=streamBytesFromObj(so);if(sb){if(/\/FlateDecode\b/.test(so.slice(0,so.indexOf('stream'))))sb=await inflateBytes(sb);maps[n]=parseCMap(new TextDecoder('latin1').decode(sb));}}
+    }
+    for(const m of obj.matchAll(/\/(Font\d+)\s+(\d+)\s+0\s+R/g))fonts[m[1]]=+m[2];
+  }
+  const fontMaps={};
+  for(const k in fonts)fontMaps[k]=maps[fonts[k]]||{};
+  const rows=[];
+  for(const [n,obj] of objs){
+    if(!/\/Type\s*\/Page\b/.test(obj))continue;
+    const cm=obj.match(/\/Contents\s+(\d+)\s+0\s+R/);if(!cm)continue;
+    const co=objs.get(+cm[1]);if(!co)continue;
+    let sb=streamBytesFromObj(co);if(!sb)continue;
+    if(/\/FlateDecode\b/.test(co.slice(0,co.indexOf('stream'))))sb=await inflateBytes(sb);
+    const txt=new TextDecoder('latin1').decode(sb);
+    for(const bm of txt.matchAll(/BT([\s\S]*?)ET/g)){
+      const b=bm[1], fm=b.match(/\/(Font\d+)\s+[\d.]+\s+Tf/), tm=b.match(/(-?[\d.]+)\s+(-?[\d.]+)\s+Tm/);
+      if(!fm||!tm)continue;
+      const x=+tm[1],y=+tm[2], vals=parsePDFStringTokens(b), mp=fontMaps[fm[1]]||{};
+      let value='';for(const v of vals)value+=decodePDFText(v,mp,fm[1]);
+      value=value.replace(/\s+/g,' ').trim();if(value)rows.push({x,y,text:value});
+    }
+  }
+  rows.sort((a,b)=>a.y-b.y||a.x-b.x);
+  const groups=[];
+  for(const r of rows){let g=groups.find(q=>Math.abs(q.y-r.y)<=6);if(!g){g={y:r.y,items:[]};groups.push(g)}g.items.push(r)}
+  groups.sort((a,b)=>a.y-b.y);
+  return groups.map(g=>g.items.sort((a,b)=>a.x-b.x).map(x=>x.text).join(' | ')).filter(x=>x);
+}
+async function importPDF(){
+  const f=$('pdffile').files[0];
+  if(!f)return alert('Select PDF');
+  $('pdfmsg').textContent=' Reading PDF...';
+  try{
+    const rows=await extractPDFRows(f);
+    let added=0,skipped=0;
+    const area=$('pdfArea').value||areas[0]||'Main Area';
+    for(const line of rows){
+      // PDF format is fixed as: Name/User | Package | Bill.
+      // The value printed in the PDF Name column is stored as USER/PPPoE username.
+      // Software Name is intentionally blank so the owner can enter/edit it later.
+      const parts=line.split('|').map(v=>String(v||'').trim()).filter(Boolean);
+      if(parts.length<3)continue;
+      // The PDF's first visible column is the USER value (for example R2/BGSC).
+      // Some PDF readers may prepend a serial/row number (12, 13, etc.), so do NOT
+      // blindly take parts[0]. Prefer the actual R2/... value from the first column.
+      const userPart=parts.find(v=>/^R2\/[^|\s]+$/i.test(v)) || parts.find(v=>/[A-Za-z]/.test(v) && !/^(name|customer|user|username|package|bill|total)$/i.test(v));
+      const username=String(userPart||'').trim();
+      const pkg=parts[parts.length-2];
+      const billText=parts[parts.length-1].replace(/,/g,'').trim();
+      const bill=Number(billText);
+      if(!username||!Number.isFinite(bill)||bill<=0)continue;
+      if(/^(name|customer|user|username|package|bill|total)$/i.test(username))continue;
+      const norm=v=>String(v??'').trim().toLowerCase();
+      // USER/PPPoE username is the only duplicate key. Names are allowed to repeat.
+      if(customers.some(c=>norm(c.username)===norm(username))){skipped++;continue;}
+      customers.push({
+        id:Date.now()+added,
+        name:'',
+        mobile:'',
+        username:username,
+        password:'',
+        area,
+        package:pkg,
+        bill,
+        paid:false,
+        paymentDate:'',
+        collector:'-',
+        openingDue:0,
+        active:true,
+        monthlyBills:[{month:monthKey(),amount:bill,paid:false,paymentDate:'',collector:'-'}]
+      });
+      added++;
+    }
+    save();render();
+    $('pdfmsg').textContent=added?(' '+added+' customer imported from PDF.'+(skipped?' '+skipped+' duplicate skipped.':'')):' PDF পড়া গেছে, কিন্তু valid row পাওয়া যায়নি।';
+  }catch(e){console.error(e);$('pdfmsg').textContent=' PDF read failed: '+e.message;}
+}
+
+function exportCSV(){let rows=[['name','mobile','username','password','area','package','bill','status','collector']];customers.forEach(x=>rows.push([x.name,x.mobile,x.username,x.password,x.area,x.package,x.bill,x.paid?'PAID':'UNPAID',x.collector]));let s=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'text/csv'}));a.download='Sagor_ISP_Customers.csv';a.click()}
+let customerView='details';
+function setCustomerView(v){customerView=v;render()}
+function closeDetails(){$('detailsbox').style.display='none'}
+function showDetails(i){
+  let x=customers[i];
+  $('detailsContent').innerHTML='<div class="grid2">'+
+  '<div><b>Name</b><br>'+escapeHtml(x.name||'')+'</div>'+
+  '<div><b>Mobile</b><br>'+escapeHtml(x.mobile||'')+'</div>'+
+  '<div><b>User</b><br>'+escapeHtml(x.username||'')+'</div>'+
+  '<div><b>Area</b><br>'+escapeHtml(x.area||'')+'</div>'+
+  '<div><b>Package</b><br>'+escapeHtml(x.package||'')+'</div>'+
+  '<div><b>Bill</b><br>৳'+(+x.bill||0)+'/=</div>'+
+  '<div style="grid-column:1/-1"><b>Address / ঠিকানা</b><br>'+escapeHtml(x.address||'-')+'</div>'+
+  '<div><b>Opening Due</b><br>৳'+(+x.openingDue||0)+'/=</div>'+
+  '<div><b>Total Due</b><br>৳'+(x.paid?0:customerDueAmount(x))+'/=</div>'+
+  '<div><b>Status</b><br>'+(x.paid?'✓ PAID':'UNPAID')+'</div>'+
+  '</div>';
+  $('detailsbox').style.display='flex';
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function render(){
+ensureMonthlyBills();
+let total=customers.length,paid=customers.filter(x=>x.paid),unpaid=customers.filter(x=>!x.paid),expected=customers.reduce((s,x)=>s+(+x.bill||0),0);let pd=new Date();pd.setDate(1);pd.setMonth(pd.getMonth()-1);let previousMonth=monthKey(pd),previousUnpaid=customers.flatMap(x=>(x.monthlyBills||[]).filter(b=>b.month===previousMonth&&!b.paid).map(b=>({x,b})));if($('dPrevious'))$('dPrevious').textContent='৳'+previousUnpaid.reduce((sum,o)=>sum+(+o.b.amount||0),0)+'/=';if($('dPreviousCount'))$('dPreviousCount').textContent=previousUnpaid.length+' জন';
+$('dTotal').textContent=total;$('dPaid').textContent=paid.length;$('dOutstanding').textContent='৳'+unpaid.reduce((s,x)=>s+customerDueAmount(x),0)+'/=';$('dExpected').textContent='৳'+expected+'/=';$('dCurrent').textContent='৳'+unpaid.reduce((s,x)=>s+customerDueAmount(x),0)+'/=';$('dPartialRemain').textContent='৳0/=';$('dPartial').textContent=unpaid.length;$('dOverdue').textContent=0;$('dOn').textContent=customers.filter(x=>x.active).length;$('dOff').textContent=customers.filter(x=>!x.active).length;$('dActive').textContent=customers.filter(x=>x.active).length+' → '+customers.filter(x=>!x.active).length;
+if($('allUserCount'))$('allUserCount').textContent=customers.length;
+if($('allTotalBill'))$('allTotalBill').textContent='৳'+customers.reduce((s,x)=>s+customerDueAmount(x),0)+'/=';
+if($('allCollected'))$('allCollected').textContent='৳'+customers.filter(x=>x.paid).reduce((s,x)=>s+customerDueAmount(x),0)+'/=';
+if($('allRemaining'))$('allRemaining').textContent='৳'+customers.filter(x=>!x.paid).reduce((s,x)=>s+customerDueAmount(x),0)+'/=';
+$('ca').innerHTML=areas.map(x=>`<option>${x}</option>`).join('');if($('areaFilter')){let oldArea=areaFilter;$('areaFilter').innerHTML='<option value="all">Main Area (All Lines)</option>'+areas.filter(a=>a!=='Main Area').map(a=>`<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');$('areaFilter').value=areas.includes(oldArea)||oldArea==='all'?oldArea:'all';areaFilter=$('areaFilter').value;} $('importArea').innerHTML=areas.map(x=>`<option>${x}</option>`).join('');$('pdfArea').innerHTML=areas.map(x=>`<option>${x}</option>`).join('');if($('bulkArea'))$('bulkArea').innerHTML='<option value="">Move selected to Area</option>'+areas.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');$('cpack').innerHTML=packages.map((x,i)=>`<option value="${i}">${x.name} - ৳${x.price}</option>`).join('');
+let q=($('quickSearch').value||'').toLowerCase();let prevDate=new Date();prevDate.setDate(1);prevDate.setMonth(prevDate.getMonth()-1);let prevMonth=monthKey(prevDate);
+let fullList=customers.map((x,i)=>({x,i})).filter(o=>{let monthDue=(o.x.monthlyBills||[]).some(b=>b.month===prevMonth&&!b.paid);let statusOk=filterMode==='all'||(filterMode==='paid'&&o.x.paid)||(filterMode==='unpaid'&&customerDueAmount(o.x)>0)||(filterMode==='prevdue'&&monthDue);let areaOk=areaFilter==='all'||(o.x.area||'Main Area')===areaFilter;return statusOk&&areaOk&&(!q||JSON.stringify(o.x).toLowerCase().includes(q));});
+let pageSize=customerPageSize,totalPages=Math.max(1,Math.ceil(fullList.length/pageSize));customerPage=Math.min(Math.max(1,customerPage),totalPages);
+let list=pageSize===Infinity?fullList:fullList.slice((customerPage-1)*pageSize,customerPage*pageSize);
+$('customerRows').innerHTML=list.map(o=>{let x=o.x,i=o.i;
+let actions=`${x.paid?`<button class="btn danger" onclick="unpay(${i})">UNPAID</button>`:`<button class="btn success" onclick="pay(${i})">PAID</button>`} <button class="btn" onclick="editCustomer(${i})">Edit</button> <button class="btn danger" onclick="archiveCustomer(${i})">Delete / Disconnect</button>`;
+if(customerView==='shortmobile') return `<tr class="mobile-customer-card"><td class="mobile-select"><input type="checkbox" class="customerSelect" data-index="${i}" onchange="updateSelectedCount()"></td><td colspan="8" class="mobile-customer-content"><div class="mobile-customer-head"><b>${escapeHtml(x.name||'-')}</b><span class="badge ${x.paid?'paid':'unpaid'}">${x.paid?'✓ PAID':'UNPAID'}</span></div><div class="mobile-customer-grid"><div><small>Mobile</small><strong>${escapeHtml(x.mobile||'-')}</strong></div><div><small>User</small><strong>${escapeHtml(x.username||'-')}</strong></div><div><small>Area</small><strong>${escapeHtml(x.area||'-')}</strong></div><div><small>Package</small><strong>${escapeHtml(x.package||'-')}</strong></div><div><small>Monthly Bill</small><strong>৳${+x.bill||0}/=</strong></div><div><small>Due</small><strong>৳${x.paid?0:customerDueAmount(x)}/=</strong></div><div class="mobile-address"><small>Address / ঠিকানা</small><strong>${escapeHtml(x.address||'-')}</strong></div></div><div class="mobile-customer-actions"><button class="btn" onclick="showDetails(${i})">Details</button> ${actions}</div></td></tr>`;
+if(customerView==='shortpc') return `<tr><td><input type="checkbox" class="customerSelect" data-index="${i}" onchange="updateSelectedCount()"></td><td>${escapeHtml(x.name)}</td><td>${escapeHtml(x.mobile||'')}</td><td>${escapeHtml(x.username||'')}</td><td>৳${x.paid?0:customerDueAmount(x)}/=</td><td><span class="badge ${x.paid?'paid':'unpaid'}">${x.paid?'✓ PAID':'UNPAID'}</span></td><td><button class="btn" onclick="showDetails(${i})">Details</button> ${actions}</td></tr>`;
+return `<tr><td><input type="checkbox" class="customerSelect" data-index="${i}" onchange="updateSelectedCount()"></td><td>${escapeHtml(x.name)}</td><td>${escapeHtml(x.mobile||'')}</td><td>${escapeHtml(x.username||'')}</td><td>${escapeHtml(x.area||'')}</td><td>${escapeHtml(x.package||'')}</td><td>৳${x.paid?0:customerDueAmount(x)}</td><td><span class="badge ${x.paid?'paid':'unpaid'}">${x.paid?'✓ PAID':'UNPAID'}</span></td><td><button class="btn" onclick="showDetails(${i})">Details</button> ${actions}</td></tr>`}).join('');
+if(customerView==='shortpc') $('customerRows').previousElementSibling.innerHTML='<tr><th></th><th>Name</th><th>Mobile</th><th>User</th><th>Due</th><th>Status</th><th>Action</th></tr>';
+else if(customerView==='shortmobile') $('customerRows').previousElementSibling.innerHTML='<tr><th></th><th colspan="8">Customer Details</th></tr>';
+if($('customerRows').closest('.tablewrap')) $('customerRows').closest('.tablewrap').classList.toggle('shortmobile-view',customerView==='shortmobile');
+else $('customerRows').previousElementSibling.innerHTML='<tr><th><input type="checkbox" id="selectAllCustomers" onchange="toggleAllCustomers(this)"></th><th>Name</th><th>Mobile</th><th>User</th><th>Area</th><th>Package</th><th>Bill</th><th>Status</th><th>Action</th></tr>';
+if($('customerPagination')){
+ let pg='<label style="display:inline-flex;align-items:center;gap:5px">Per page <select onchange="customerPageSize=this.value===\'all\'?Infinity:+this.value;customerPage=1;render()" style="width:auto;margin:0;padding:7px"><option value="10" '+(pageSize===10?'selected':'')+'>10</option><option value="20" '+(pageSize===20?'selected':'')+'>20</option><option value="25" '+(pageSize===25?'selected':'')+'>25</option><option value="50" '+(pageSize===50?'selected':'')+'>50</option><option value="100" '+(pageSize===100?'selected':'')+'>100</option><option value="all" '+(pageSize===Infinity?'selected':'')+'>All</option></select></label> ';
+ if(totalPages>1 && pageSize!==Infinity){
+   if(customerPage>1)pg+='<button class="btn" onclick="customerPage--;render()">Previous</button>';
+   for(let p=1;p<=totalPages;p++){
+     if(p===customerPage)pg+='<button class="btn primary">'+p+'</button>';
+     else if(p<=3||p>totalPages-3||Math.abs(p-customerPage)<=1)pg+='<button class="btn" onclick="customerPage='+p+';render()">'+p+'</button>';
+   }
+   if(customerPage<totalPages)pg+='<button class="btn" onclick="customerPage++;render()">Next</button>';
+   pg+='<span class="muted"> Page '+customerPage+' / '+totalPages+' — মোট '+fullList.length+' জন</span>';
+ }
+ pg+='<span class="muted">মোট '+fullList.length+' জন</span>';$('customerPagination').innerHTML=pg;
+}
+let todayKey=new Date().toLocaleDateString('en-CA');
+let todayPaid=customers.filter(x=>x.paid&&x.paymentDate&&new Date(x.paymentDate).toLocaleDateString('en-CA')===todayKey);
+let todayTotal=todayPaid.reduce((s,x)=>s+customerDueAmount(x),0);
+$('todayPaymentSummary').textContent='আজকে PAID: '+todayPaid.length+' জন — মোট: ৳'+todayTotal+'/=';
+$('todayPaymentList').innerHTML=todayPaid.length?todayPaid.map(x=>x.name+' — ৳'+customerDueAmount(x)+' — '+new Date(x.paymentDate).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})).join(' &nbsp; | &nbsp; '):'আজকে এখনো কোনো পেমেন্ট হয়নি।';
+$('paymentRows').innerHTML=customers.map((x,i)=>`<tr><td>${x.name}</td><td>৳${x.paid?customerDueAmount(x):customerDueAmount(x)}</td><td>${x.paid?'✓ PAID':'UNPAID'}</td><td>${x.paid&&x.paymentDate?new Date(x.paymentDate).toLocaleString():'-'}</td><td>${x.collector}</td><td>${x.paid?`<button class="btn danger" onclick="unpay(${i})">UNPAID</button>`:`<button class="btn success" onclick="pay(${i})">PAID</button>`}</td></tr>`).join('');
+$('areasList').innerHTML=areas.map((x,i)=>{let cnt=customers.filter(c=>(c.area||'')===x).length;return `<div style="padding:10px;border-bottom:1px solid #eee;cursor:pointer" onclick="showAreaCustomers(${i})"><b>${escapeHtml(x)}</b> <span class="badge">${cnt} Line</span><button class="btn danger" style="float:right" onclick="event.stopPropagation();delArea(${i})">Delete</button></div>`}).join('');
+$('packageList').innerHTML=packages.map((x,i)=>`<div style="padding:10px;border-bottom:1px solid #eee">${x.name} — ৳${x.price}<button class="btn danger" style="float:right" onclick="delPackage(${i})">Delete</button></div>`).join('');
+$('staffList').innerHTML=staff.map((x,i)=>`<div style="padding:10px;border-bottom:1px solid #eee">${x.name} — ${x.role} — ${x.username}${x.username!=='admin'?`<button class="btn danger" style="float:right" onclick="delStaff(${i})">Delete</button>`:''}</div>`).join('');
+$('expenseList').innerHTML=expenses.map(x=>`<div style="padding:10px;border-bottom:1px solid #eee">${x.name} — ৳${x.amount} — ${x.by} — ${x.date}</div>`).join('')||'No expense';
+$('archiveList').innerHTML=archive.length?archive.map((x,i)=>`<div style="padding:10px;border-bottom:1px solid #eee"><b>${x.name}</b> — ${x.username||''} — ${x.package||''} — ৳${x.bill||0} — ${x.area||''}<button class="btn success" style="float:right" onclick="restoreCustomer(${i})">Reconnect / Restore</button> <button class="btn danger" style="float:right;margin-right:6px" onclick="permanentDeleteArchive(${i})">Permanent Delete</button></div>`).join(''):'No deleted/disconnected customers';
+}
+syncBrand();renderAdminSettings();renderSyncSettings();
+
+// Cloud bootstrap starts before login so a new device can load the shared Admin account first.
+setTimeout(()=>prepareCloudLogin(),250);
+</script>
+</body></html>
